@@ -1,8 +1,11 @@
 let canvas = document.getElementById("myCanvas");
 let ctx = canvas.getContext("2d");
 
-let xBall = 50;
-let yBall = 50;
+let lives = 3;
+let score = 0;
+
+let xBall = 300;
+let yBall = 300;
 let xBallVel = 3;
 let yBallVel = 3;
 
@@ -25,14 +28,24 @@ for (let j = 0; j < 3; j++) {
     blocks[j][i] = block;
 }
 }
+
+
+function drawText(text, x, y, colour) {
+  ctx.font = "20px Arial";
+  ctx.fillStyle = colour ;
+  ctx.fillText(text, x, y);
+}
+
 function drawBlocks() {
   for (let j = 0; j < 3; j++) {
     for (let i = 0; i < 10; i++) {
-      ctx.beginPath();
-      ctx.rect(blocks[j][i].x, blocks[j][i].y, 40, 20);
-      ctx.fillStyle = "blue";
-      ctx.fill();
-      ctx.closePath();
+      if (blocks[j][i]){
+        ctx.beginPath();
+        ctx.rect(blocks[j][i].x, blocks[j][i].y, 40, 20);
+        ctx.fillStyle = "blue";
+        ctx.fill();
+        ctx.closePath();
+      }
     }
   }
 }
@@ -75,15 +88,52 @@ function draw(){
   drawBall();
   drawRect();
   drawBlocks();
+  drawText("Score: " + score, 300, 200, "blue");
+  drawText("Lives: " + lives, 400, 200, "red")
+}
+
+
+function blockCollisionDetection() {
+  for (let j = 0; j < 3; j++) {
+    for (let i = 0; i < 10; i++) {
+      if (blocks[j][i]) {
+      const block = blocks[j][i];
+
+        if ((xBall > block.x)
+        && (xBall < block.x + 70)
+        && (yBall > block.y)
+        && (yBall < block.y + 40)) {
+          blocks[j][i] = null;
+          score++;
+          yBallVel *= -1;
+          if (score == 30) {
+            alert("You won!");
+            document.location.reload();
+            clearInterval(interval);
+          }
+        }
+      }
+    }
+  }
 }
 
 function update(){
 
   //update ball
   if (yBall > canvas.height){
-    alert("Game over");
-    document.location.reload();
-    clearInterval(interval);
+    lives--;
+
+    if (lives == 0) {
+      alert("Game over");
+      document.location.reload();
+      clearInterval(interval);
+    }
+    else {
+      xBall = 360;
+      yBall = 400;
+      xBallVel = 2;
+      yBallVel = -2;
+    }
   }
 
   if (xBall > canvas.width) {
@@ -98,7 +148,10 @@ function update(){
     yBallVel *= -1;
   }
 
-  if ((xBall > xRect) && (xBall < xRect + 120) && (yBall > yRect) && (yBall < yRect + 20)){
+  if ((xBall > xRect)
+  && (xBall < xRect + 120)
+  && (yBall > yRect)
+  && (yBall < yRect + 20)){
     yBallVel *= -1;
   }
 
@@ -120,16 +173,7 @@ function update(){
   xRect += xRectVel;
   yRect += yRectVel;
 
-  if ((xBall > (blocks[i][j].x) - 20)) {
-    if ((xBall < (blocks[i][j].x) + 20)) {
-      if (yBall > (blocks[i][j].y) - 10) {
-        if (yBall < (blocks[i][j].y) + 10) {
-          //xBallVel *= -1;
-          yBallVel *= -1;
-        }
-      }
-    }
-  }
+  blockCollisionDetection();
 }
 
 
